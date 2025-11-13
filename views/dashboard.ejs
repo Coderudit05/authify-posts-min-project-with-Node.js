@@ -8,16 +8,72 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-black text-white flex flex-col items-center justify-center h-screen">
-    <h1 class="text-3xl font-bold mb-4">Welcome, <%= user.email %> 🎉</h1>
-    <p class="text-lg mb-6">Your user ID is: <%= user.userId %>
-    </p>
+<body class="bg-black text-white">
+    <header class="flex justify-between items-center p-4">
+        <div></div> <!-- Spacer -->
+        <h1 class="text-3xl font-bold">Welcome, <%= user.name %>
+        </h1>
+        <form action="/logout" method="post">
+            <button class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md text-white">
+                Logout
+            </button>
+        </form>
+    </header>
 
-    <form action="/logout" method="post">
-        <button class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md text-white">
-            Logout
-        </button>
-    </form>
+    <main class="p-4">
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-center">What Do you want to post today?</h2>
+            <form action="/post" method="post" class="flex flex-col items-center">
+                <input type="text" name="thought" placeholder="Write Your Thoughts"
+                    class="w-full max-w-md px-3 py-2 border border-gray-300 rounded-md bg-gray-800 text-white mb-4">
+                <button type="submit"
+                    class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-md text-white">Post</button>
+            </form>
+        </section>
+
+        <section class="w-full">
+            <div class="flex flex-wrap gap-4">
+                <% posts.forEach(post=> { %>
+                    <div class="bg-zinc-900 p-4 rounded-lg shadow-lg w-full max-w-sm">
+                        <p class="mb-4">
+                            <%= post.content %>
+                        </p>
+                        <div class="flex justify-between items-center">
+                            <!-- This is the like button form where users can like a post  -->
+                            <!-- Logic : 
+                                 If post.likes array contains the current user's ID, show a filled heart with the count of likes.
+                                 Else, show an empty heart with "Like" text.
+                               -->
+                            <form action="/post/<%= post._id %>/like" method="post" class="inline">
+                                <button type="submit"
+                                    class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-md text-white">
+                                    <%= post.likes && post.likes.length ? `❤️ ${post.likes.length}` : "🤍 Like" %>
+                                </button>
+                            </form>
+
+                            <!-- iska matlab hai ke agar jo ye post dekh raha hai uske id aur jo user dekh raha h uske id if same hai toh usko edit aur delete ka option dikhana hai -->
+                            <!-- Aur agar same nahi hai toh sirf post karne wale ka naam dikhana hai -->
+                            <% if (post.user && post.user._id.toString()===user._id.toString()) { %>
+                                <div class="flex gap-2">
+                                    <a href="/post/<%= post._id %>/edit"
+                                        class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded-md text-white">Edit</a>
+                                    <form action="/post/<%= post._id %>/delete" method="post"
+                                        onsubmit="return confirm('Delete this post?')">
+                                        <button type="submit"
+                                            class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md text-white">Delete</button>
+                                    </form>
+                                </div>
+                                <% } else { %>
+                                    <span class="text-sm text-gray-400">by <%= post.user?.name || post.user?.userName
+                                            || 'Unknown' %></span>
+                                    <% } %>
+                        </div>
+
+                    </div>
+                    <% }) %>
+            </div>
+        </section>
+    </main>
 </body>
 
 </html>
