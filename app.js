@@ -1,6 +1,10 @@
 // loading environment variables
 require("dotenv").config();
 
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET must be set in the environment before starting the app.");
+}
+
 // importing express
 const express = require("express");
 
@@ -8,7 +12,7 @@ const express = require("express");
 const app = express();
 
 // setting the port
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Importing the user model
 const userModel = require("./models/user");
@@ -86,7 +90,8 @@ app.post("/register", async (req, res) => {
     // storing the token in cookies
     res.cookie("token", token, {
       httpOnly: true, // prevents access from JS
-      secure: false, // set to true in production with HTTPS
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 60 * 60 * 1000, // 1 hour
     });
 
@@ -143,7 +148,8 @@ app.post("/login", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // true in production
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 60 * 60 * 1000, // 1 hour
     });
 
@@ -190,7 +196,11 @@ app.get("/dashboard", isLoggedIn, async (req, res) => {
 
 // Logout route to clear the cookie
 app.post("/logout", (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
   res.redirect("/login");
 });
 
